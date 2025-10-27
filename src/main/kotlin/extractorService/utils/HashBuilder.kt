@@ -9,18 +9,18 @@ class HashBuilder {
         allFileHashes: Map<String, String>,
         pluginXmlContent: String?
     ): ContentSignature {
-        // Find plugin.xml hash
+
         val pluginXmlHash = if (pluginXmlContent != null) {
             sha256(pluginXmlContent.toByteArray())
         } else {
             null
         }
 
-        // Create a combined hash of all .class files
+
         val classFileHashes = allFileHashes
-            .filter { it.key.contains(".jar") } // JARs contain classes
+            .filter { it.key.contains(".jar") }
             .values
-            .sorted() // Sort for consistency
+            .sorted()
             .joinToString("")
 
         val classFilesHash = if (classFileHashes.isNotEmpty()) {
@@ -29,7 +29,7 @@ class HashBuilder {
             ""
         }
 
-        // Create overall hash from all file hashes combined
+
         val combinedHashes = allFileHashes.values
             .sorted()
             .joinToString("")
