@@ -17,7 +17,7 @@ class EmbeddingService(private val parsedFile: PluginAnalysis, private val outpu
 
     fun embedPlugin(): PluginEmbedding{
         if (outputFile.exists()){
-            println("File already exists, reading...")
+            println("\u001B[33m[INFO]\u001B[0m  File already exists, reading...")
             return PluginEmbedding.fromJson(outputFile.readText())
         }
         val keywordEmbedding = getEmbedding(parsedFile.pluginDNA.keywords.joinToString(" "))

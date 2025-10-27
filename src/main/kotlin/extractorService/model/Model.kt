@@ -45,7 +45,13 @@ data class PluginAnalysis(
 {
     companion object {
         fun fromJson(jsonString: String): PluginAnalysis {
-            return Json.decodeFromString(jsonString)
+            try {
+                return Json.decodeFromString(jsonString)
+            }catch (e : Exception){
+                println(e.toString())
+                throw e
+
+            }
         }
     }
 }

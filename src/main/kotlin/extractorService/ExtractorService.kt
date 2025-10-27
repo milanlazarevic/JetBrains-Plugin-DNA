@@ -25,7 +25,7 @@ class ExtractorService(inputFile: File, private val outputFile: File) {
      */
     fun extractEntries(): PluginAnalysis {
         if (outputFile.exists()){
-            println("File already exists, reading...")
+            println("\u001B[33m[INFO]\u001B[0m  File already exists, reading...")
             return PluginAnalysis.fromJson(outputFile.readText())
         }
 
