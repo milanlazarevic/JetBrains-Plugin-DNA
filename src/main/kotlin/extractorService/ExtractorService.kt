@@ -46,7 +46,6 @@ class ExtractorService(inputFile: File, private val outputFile: File) {
 
                     val extension = entry.name.substringAfterLast('.', "")
                     filesByType[extension] = filesByType.getOrDefault(extension, 0) + 1
-                    // Extract JAR to temp or process in-memory
                     val jarBytes = zip.getInputStream(entry).readBytes()
                     val jarHash = hashBuilder.sha256(jarBytes)
                     allFileHashes[entry.name] = jarHash
@@ -54,7 +53,6 @@ class ExtractorService(inputFile: File, private val outputFile: File) {
                     val jarInfo = analyzeJar(entry.name, jarBytes)
                     jarInfos.add(jarInfo)
 
-                    // Check if this JAR contains plugin.xml
                     if (jarInfo.hasPluginXml) {
                         pluginXmlContent = extractPluginXmlContent(jarBytes)
                         pluginMetadata = extractPluginMetadata(jarBytes)
@@ -64,7 +62,6 @@ class ExtractorService(inputFile: File, private val outputFile: File) {
         }
 
 
-        // Build the complete analysis...
         val parsedFile = PluginAnalysis(
             metadata = pluginMetadata ?: PluginMetadata(null, null, null, null, null),
             structure = buildStructureInfo(jarInfos, totalFiles, totalSize, filesByType),
@@ -99,7 +96,6 @@ class ExtractorService(inputFile: File, private val outputFile: File) {
 
     private fun analyzeJar(jarName: String, jarBytes: ByteArray): JarInfo {
 
-        // Create a temporary file or use in-memory ZIP
         val tempFile = File.createTempFile("jar-analysis", ".jar")
         tempFile.writeBytes(jarBytes)
         println(jarName)
@@ -119,7 +115,6 @@ class ExtractorService(inputFile: File, private val outputFile: File) {
                     hasPluginXml = true
                 }
 
-                // Extract package from .class files
                 if (entry.name.endsWith(".class")) {
                     val packagePath = entry.name.substringBeforeLast('/')
                         .replace('/', '.')
@@ -190,26 +185,24 @@ class ExtractorService(inputFile: File, private val outputFile: File) {
     }
 
     private fun extractDependencies(jarInfos: List<JarInfo>, pluginXmlContent: String?): Dependencies {
-        // Extract plugin dependencies from plugin.xml
         val pluginDeps = if (pluginXmlContent != null) {
             extractPluginDependencies(pluginXmlContent)
         } else {
             emptyList()
         }
 
-        // Extract library JARs (exclude plugin's own JARs)
+
         val libraryJars = jarInfos
-            .filter { !it.name.contains("aws-toolkit-jetbrains") } // Filter out plugin's own code
+            .filter { !it.name.contains("aws-toolkit-jetbrains") }
             .map { jar ->
                 LibraryJar(
                     name = jar.name,
-                    version = extractVersion(jar.name), // e.g., "2.17.2" from "jackson-core-2.17.2.jar"
+                    version = extractVersion(jar.name),
                     size = jar.size,
                     hash = jar.hashCode().toString()
                 )
             }
 
-        // Extract IDEA version from plugin.xml
         val ideaVersion = if (pluginXmlContent != null) {
             extractIdeaVersion(pluginXmlContent)
         } else {
@@ -257,7 +250,6 @@ class ExtractorService(inputFile: File, private val outputFile: File) {
     }
 
     private fun extractVersion(jarName: String): String? {
-        // Extract version like "2.17.2" from "jackson-core-2.17.2.jar"
         val versionRegex = """(\d+\.\d+\.\d+)""".toRegex()
         return versionRegex.find(jarName)?.value
     }
@@ -277,7 +269,6 @@ class ExtractorService(inputFile: File, private val outputFile: File) {
     }
 
     private fun parsePluginXml(xmlContent: String): PluginMetadata {
-        // Basic XML parsing - you might want to use a proper XML library
         val idRegex = """<id>(.*?)</id>""".toRegex()
         val nameRegex = """<name>(.*?)</name>""".toRegex()
         val versionRegex = """<version>(.*?)</version>""".toRegex()
